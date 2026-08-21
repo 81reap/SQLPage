@@ -637,7 +637,6 @@ mod tests {
 
         fn contains(&self, path: &str) -> bool {
             let normalized_path = path.replace('\\', "/");
-            dbg!(&normalized_path, &self.contents);
             self.contents.contains(&normalized_path)
         }
 

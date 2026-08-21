@@ -42,7 +42,6 @@ ProtectKernelTunables=true
 ProtectClock=true
 ProtectHostname=true
 ProtectProc=invisible
-ProtectClock=true
 
 # Resource limits
 LimitNOFILE=65536
