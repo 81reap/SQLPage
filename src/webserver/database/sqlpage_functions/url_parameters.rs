@@ -127,12 +127,6 @@ impl std::fmt::Display for URLParameters {
     }
 }
 
-impl From<URLParameters> for String {
-    fn from(value: URLParameters) -> Self {
-        value.0
-    }
-}
-
 #[test]
 fn test_url_parameters_deserializer() {
     use serde_json::json;

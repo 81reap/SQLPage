@@ -68,12 +68,7 @@ impl SupportedDatabase {
     /// See <https://opentelemetry.io/docs/specs/semconv/registry/attributes/db/#db-system-name>
     #[must_use]
     pub fn otel_name(self) -> &'static str {
-        Self::otel_name_from_kind(self)
-    }
-
-    #[must_use]
-    pub fn otel_name_from_kind(kind: impl Into<SupportedDatabase>) -> &'static str {
-        match kind.into() {
+        match self {
             Self::Sqlite => "sqlite",
             Self::Duckdb => "duckdb",
             Self::Oracle => "oracle.db",
@@ -108,18 +103,6 @@ impl SupportedDatabase {
         match self {
             Self::Oracle | Self::Mssql => IgnoreNull,
             _ => PropagateNull,
-        }
-    }
-}
-
-impl From<AnyKind> for SupportedDatabase {
-    fn from(kind: AnyKind) -> Self {
-        match kind {
-            AnyKind::Postgres => Self::Postgres,
-            AnyKind::MySql => Self::MySql,
-            AnyKind::Sqlite => Self::Sqlite,
-            AnyKind::Mssql => Self::Mssql,
-            AnyKind::Odbc => Self::Generic,
         }
     }
 }
