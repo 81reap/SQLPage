@@ -1,16 +1,18 @@
+import type { ApexOptions } from "apexcharts";
 import ApexCharts from "apexcharts";
-import { align_series_for, xaxis_type_for } from "./chart_series.js";
-import { add_init_fn } from "./init.js";
-
-/**
- * @typedef {import("./chart_series.js").ChartSeries} ChartSeries
- * @typedef {import("./chart_series.js").Series} Series
- */
+import {
+  align_series_for,
+  type ChartSeries,
+  type Series,
+  xaxis_type_for,
+} from "./chart_series.ts";
+import { add_init_fn } from "./init.ts";
 
 const sqlpage_chart = (() => {
   function sqlpage_chart() {
-    /** @type {NodeListOf<HTMLElement>} */
-    const charts = document.querySelectorAll("[data-pre-init=chart]");
+    const charts = document.querySelectorAll<HTMLElement>(
+      "[data-pre-init=chart]",
+    );
     for (const c of charts) {
       try {
         build_sqlpage_chart(c);
@@ -50,24 +52,21 @@ const sqlpage_chart = (() => {
 
   const referenceColor = colorNames[isDarkTheme ? "gray-lt" : "gray"];
 
-  /** @typedef { {[property:string]: string|number|null} } ReferenceLine */
+  type ReferenceLine = { [property: string]: string | number | null };
 
-  /** @param {unknown} name @returns {string|undefined} */
-  const named_color = (name) =>
+  const named_color = (name: unknown): string | undefined =>
     typeof name === "string" ? colorNames[name] : undefined;
 
-  /** @param {string|number|null} name */
-  const reference_color = (name) => named_color(name) || referenceColor;
+  const reference_color = (name: string | number | null) =>
+    named_color(name) || referenceColor;
 
-  /**
-   * @param {ReferenceLine[]} rows - the rows that carry an xline or a yline
-   * @param {"x"|"y"} column - the column the reference is written in
-   * @param {"x"|"y"} axis - the apexcharts axis that column is drawn on
-   * @param {(value: any) => any} to_axis_value - puts a SQL value on the axis
-   * @returns {object[]} apexcharts axis annotations
-   */
-  function reference_lines(rows, column, axis, to_axis_value) {
-    const on_axis = (value) => {
+  function reference_lines(
+    rows: ReferenceLine[],
+    column: "x" | "y",
+    axis: "x" | "y",
+    to_axis_value: (value: string | number) => unknown,
+  ): object[] {
+    const on_axis = (value: string | number | null) => {
       if (value == null) return null;
       const placed = to_axis_value(value);
       return Number.isNaN(placed) ? null : placed;
@@ -94,13 +93,10 @@ const sqlpage_chart = (() => {
     });
   }
 
-  /** @param {HTMLElement} c */
-  function build_sqlpage_chart(c) {
+  function build_sqlpage_chart(c: HTMLElement) {
     const [data_element] = c.getElementsByTagName("data");
     const data = JSON.parse(data_element.textContent);
-    const chartContainer = /** @type {HTMLElement} */ (
-      c.querySelector(".chart")
-    );
+    const chartContainer = c.querySelector(".chart") as HTMLElement;
     chartContainer.innerHTML = "";
     const is_timeseries = !!data.time;
     const chart_type =
@@ -109,11 +105,12 @@ const sqlpage_chart = (() => {
       !!data.stacked && STACKABLE_CHART_TYPES.includes(chart_type);
     const points = data.points.filter(Array.isArray);
     const reference_rows = data.points.filter((row) => !Array.isArray(row));
-    /** @type { Series } */
-    const series_map = new Map();
+    const series_map: Series = new Map();
     for (const [name, old_x, old_y, color, z] of points) {
-      /** @type {ChartSeries} */
-      const point_series = series_map.get(name) ?? { name, data: [] };
+      const point_series: ChartSeries = series_map.get(name) ?? {
+        name,
+        data: [],
+      };
       series_map.set(name, point_series);
       let x = old_x;
       let y = old_y;
@@ -145,7 +142,7 @@ const sqlpage_chart = (() => {
       !!data.horizontal,
     );
 
-    let labels;
+    let labels: (number | string | Date)[] | undefined;
     if (chart_type === "pie") {
       labels = points.map(([name, x, _y]) => x || name);
       series = points.map(([_name, _x, y]) => Number.parseFloat(y));
@@ -297,14 +294,12 @@ const sqlpage_chart = (() => {
       colors,
       series,
     };
-    if (labels) options.labels = labels;
+    if (labels) (options as { labels?: unknown }).labels = labels;
     // Numeric axes count intervals; category and time axes use tickAmount as a
     // target for label density.
-    if (data.xticks) options.xaxis.tickAmount = data.xticks;
-    const chart = new ApexCharts(
-      chartContainer,
-      /** @type {import("apexcharts").ApexOptions} */ (options),
-    );
+    if (data.xticks)
+      (options.xaxis as { tickAmount?: number }).tickAmount = data.xticks;
+    const chart = new ApexCharts(chartContainer, options as ApexOptions);
     chart.render().catch(console.error);
     if (window.charts) window.charts.push(chart);
     else window.charts = [chart];
